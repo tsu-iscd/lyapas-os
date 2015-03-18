@@ -24,22 +24,10 @@ kernel: start.o protected.o
 	ld -melf_i386 --oformat=binary -Tlinker.ld -o $@ $^
 
 clean:
-	rm -f disk.img boot protected.o start.o kernel protected_tmp.l protected.asm calls calls.l interrupts interrupts.l
+	rm -f disk.img boot protected.o start.o kernel protected_tmp.l protected.asm
 
 run: bochs.txt disk.img
 	bochs -qf $<
 
 ltc: ltc.cpp
 	g++ -std=c++11 -o $@ $<
-
-interrupts: interrupts.cpp
-	g++ -std=c++11 -o $@ $<
-
-interrupts.l: interrupts
-	./$< > $@
-
-calls: calls.cpp
-	g++ -std=c++11 -o $@ $<
-
-calls.l: calls
-	./$< > $@
