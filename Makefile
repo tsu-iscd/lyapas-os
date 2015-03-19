@@ -8,9 +8,8 @@ disk.img:
 boot: boot.asm
 	nasm -f bin -o $@ $<
 
-protected.o: protected.l interrupts.l calls.l sin.sh
+protected.o: protected.l interrupts.l sin.sh ltc
 	cat protected.l | ./sin.sh > protected_tmp.l
-	cat calls.l >> protected_tmp.l
 	cat interrupts.l >> protected_tmp.l
 	./ltc protected_tmp.l
 	mv protected_tmp.s protected.asm

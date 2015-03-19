@@ -10,8 +10,6 @@ _protected(/)
     *construct_idt(/)
     {lidt [_idtr]}
     *init_pic(/)
-    {ret}
-    *calls(/)
  **
 
 *** print string on screen
@@ -50,7 +48,7 @@ init_pic(/)
     {out 0x21, al}
     {mov al, 0x01}  ***ICW4
     {out 0x21, al}
-    {mov al, 0xff}  ***OCW1
+    {mov al, 0xfe}  ***OCW1
     {out 0x21, al}
     *** Slave PIC
     {mov al, 0x11}  ***ICW1
@@ -63,14 +61,14 @@ init_pic(/)
     {out 0xa1, al}
     {mov al, 0xff}  ***OCW1
     {out 0xa1, al}
-
 **
 
 *** constructing IDT
 construct_idt(/)
     {extern _idt}
     _j
-    [_idt] = i
+    {mov eax, _idt}
+    = i
     @+L1(49)
     *int_list(L1/)
 P1  Dj#0x31?-2
