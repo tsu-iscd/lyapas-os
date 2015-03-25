@@ -93,3 +93,16 @@ P1  Dj#0x31?-2
 P2  i - 3 = i
     Ki & 0xfe = Ki
 **
+
+print_number(n/)
+    @+F1(16)
+P1  n ; 10 + '0' @>F1
+    n / 10 = n ?+1
+    _i Q1 = j > 1 = k
+P2  Di#k ?-3 Yj
+    F1i = a
+    F1j = F1i
+    a = F1j ?=2
+P3
+    *print(F1/)
+**
