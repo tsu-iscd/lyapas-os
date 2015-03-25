@@ -10,7 +10,7 @@ boot: boot.asm
 
 protected.o: protected.l interrupts.l sin.sh ltc
 	cat protected.l | ./sin.sh > protected_tmp.l
-	cat interrupts.l >> protected_tmp.l
+	cat interrupts.l | ./sin.sh >> protected_tmp.l
 	./ltc protected_tmp.l
 	mv protected_tmp.s protected.asm
 	rm -f protected_tmp.err

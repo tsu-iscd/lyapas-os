@@ -2,15 +2,16 @@ _protected(/)
     {extern _idtr}
     OK10000h
     OK10001h
-    @+F1(256)
+    OK10002h
+    OK10003h
+    @+F1(32)
     @'Welcome!'>F1
     10@>F1
     *print(F1/)
-    @-F1
     *construct_idt(/)
     {lidt [_idtr]}
     *init_pic(/)
- **
+**
 
 *** print string on screen
 *** F1 - string
@@ -77,7 +78,7 @@ construct_idt(/)
     {mov eax, _idt}
     = i
     @+L1(49)
-    *int_list(L1/)
+    *create_int_list(L1/)
 P1  Dj#0x31?-2
     L1j & 0x0000ffff | 0x00080000 = g
     g = Ki Di

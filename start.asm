@@ -31,11 +31,10 @@ protected:
   call _protected
   pop ebp
   add esp,1412
+  pop eax
 
   sti
-  int 0x3
-  int 0x23
-  int 0x30
+
   jmp $
 
 section .data
@@ -45,7 +44,7 @@ _gdt:
   ; code segment desc.
   dd 0x0000ffff, 0x00df9f00
   ; data segment desc.
-  dd 0x0000ffff, 0x00df9300 
+  dd 0x0000ffff, 0x00df9300
 _gdtr:
   dw _gdtr - _gdt - 1
   dd _gdt
