@@ -22,7 +22,9 @@ protected:
   mov ax, 8 * 2
   mov ds, ax
   mov es, ax
+  mov ss, ax
   ; вызов модуля protected
+  mov esp, 0x800000
   mov eax, 0x100000
   push eax
   sub esp,1412
