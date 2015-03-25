@@ -27,7 +27,7 @@ P2  k + 0xb8000 = i
     7 = Ki Di Dk
     ?(k < 4000)1
     0xb8000 = p + 160 = r
-    _q 3840 = k
+    _q 3842 = k
     P4 Dq#3840?-1
     Kr = Kp Dp Dr ?=4
 P3  k = K[10000h]
