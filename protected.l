@@ -1,10 +1,8 @@
 _protected(/)
     {extern _idtr}
-    OK10000h
-    OK10001h
-    OK10002h
-    OK10003h
-    @+F1(32)
+    OK[10000h]
+    OK[10004h]
+    @+F1(16)
     @'Welcome!'>F1
     10@>F1
     *print(F1/)
@@ -16,9 +14,7 @@ _protected(/)
 *** print string on screen
 *** F1 - string
 print(F1/)
-    K10000h = y 
-    K10001h = x
-    y * 160 + x = k
+    K[10000h] = k
     _j
 P1  Dj#Q1 ?-3
     F1j = s
@@ -34,8 +30,7 @@ P2  k + 0xb8000 = i
     _q 3840 = k
     P4 Dq#3840?-1
     Kr = Kp Dp Dr ?=4
-P3  k / 160 = K10000h
-    k ; 160 = K10001h
+P3  k = K[10000h]
 **
 
 *** initialization PICs
@@ -80,16 +75,10 @@ construct_idt(/)
     @+L1(49)
     *create_int_list(L1/)
 P1  Dj#0x31?-2
-    L1j & 0x0000ffff | 0x00080000 = g
-    g = Ki Di
-    g > 8 = Ki Di
-    g > 16 = Ki Di
-    g > 24 = Ki Di
-    L1j & 0xffff0000 | 0x00008f00 = g
-    g = Ki Di
-    g > 8 = Ki Di
-    g > 16 = Ki Di
-    g > 24 = Ki Di
+    L1j & 0x0000ffff | 0x00080000 = K[i]
+    i + 4 = i
+    L1j & 0xffff0000 | 0x00008f00 = K[i]
+    i + 4 = i
     ?=1
 P2  i - 3 = i
     Ki & 0xfe = Ki

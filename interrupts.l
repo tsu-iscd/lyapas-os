@@ -14,10 +14,9 @@ timer_handler(/)
     @+F1(16)
     @'Timer '>F1
     *print(F1/)
-    K10003h < 8 | K10002h = i Di
+    K[10004h] = i Di
     *print_number(i/)
-    i = K10002h
-    i > 8 = K10003h
+    i = K[10004h]
     10 = F1.0
     1 = Q1
     *print(F1/)
