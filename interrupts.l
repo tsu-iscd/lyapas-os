@@ -11,16 +11,10 @@ interrupt(/)
 **
 
 timer_handler(/)
-    @+F1(16)
-    @'Timer '>F1
-    *print(F1/)
-    K[10004h] = i Di
-    *print_number(i/)
-    i = K[10004h]
-    10 = F1.0
-    1 = Q1
-    *print(F1/)
+    {pusha}
+    {mov [0x10008], esp}
+    {mov esp, [0x10004]}
     {mov al, 0x60}
     {out 0x20, al}
-    iret
+    {iret}
 **

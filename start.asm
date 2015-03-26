@@ -35,8 +35,6 @@ protected:
   add esp,1412
   pop eax
 
-  sti
-
   jmp $
 
 section .data
