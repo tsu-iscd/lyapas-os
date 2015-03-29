@@ -69,7 +69,6 @@ init_pic(/)
     {out 0x43, al}
     {mov al, 0xff}
     {out 0x40, al}
-    {mov al, 0xff}
     {out 0x40, al}
 **
 
@@ -146,7 +145,6 @@ scheduler(L1/)
         K[10008h] = L1i ?=2
 **
 
-
 proc_0(/)
     P1 ?=1
 **
@@ -163,4 +161,24 @@ proc_2(/)
     @'Proc 2'>F1
     10@>F1
     P1 *print(F1/) ?=1
+**
+
+create_int_list(L1/)
+    _i
+P1  Di#49 ?-2
+    [interrupt]=L1i ?=1
+P2  [timer_handler]=L1.32
+**
+
+interrupt(/)
+    {iret}
+**
+
+timer_handler(/)
+    {pusha}
+    {mov [0x10008], esp}
+    {mov esp, [0x10004]}
+    {mov al, 0x60}
+    {out 0x20, al}
+    {iret}
 **
