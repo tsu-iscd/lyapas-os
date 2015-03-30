@@ -2,14 +2,13 @@ _protected(/)
     {extern _idtr}
     OK[10000h]
     @+F1(16)
-    @'Welcome!'>F1
+    @'Welcome to OS LYAPAS!'>F1
     10@>F1
     *print(F1/)
     *construct_idt(/)
     {lidt [_idtr]}
     *init_pic(/)
     *load_procs(/)
-    *scheduler(/)
 **
 
 *** print string on screen
@@ -58,12 +57,6 @@ init_pic(/)
     {out 0xa1, al}
     {mov al, 0xff}  ***OCW1
     {out 0xa1, al}
-    *** PIT
-    {mov al, 0x34}
-    {out 0x43, al}
-    {mov al, 0xff}
-    {out 0x40, al}
-    {out 0x40, al}
 **
 
 *** constructing IDT
@@ -129,31 +122,25 @@ load_procs(/)
         K[q] - 0x10000 = K[c]
         s - 8 = K[q]
         q + 4 = q ?=3
-    P4
+    P4  K[10004h] = p K[p] = p
+    K[p] = K[10008h]
     @-L2
 **
 
 scheduler(/)
     K[10004h] = s
-    K[s] = p = q s + 4 = k + 2 = a + 1 = c
-    {sti}
-    P1  _i
-    P2  Di#Kk ?-1 Ka?-3
-        c + i = s
-        Ks > 4 ?+2
-    P3  Ks & 1 ?-2
-        {push ebp}
-        {pushf}
-        {push dword 0x8}
-        {push dword .P4}
-        {mov [0x1000c], esp}
-        i * 4 + p = q
-        K[q]
-        {mov esp, eax}
-        {popa}
-        {iret}
-    P4  {pop ebp}
-        K[10008h] = K[q] ?=2
+    K[s] = p
+    s + 4 = n + 1 = i + 1 = a + 1 = c
+    Ki * 4 + p = q
+    K[10008h] = K[q]
+    P1  Dj#Kn ?+2 Oj 
+    P2  c + j = s
+        Ka?-3
+        Ks > 4 ?+1
+    P3  Ks & 1 ?-1
+    j * 4 + p = p
+    K[p] = K[10008h]
+    j = Ki
 **
 
 proc_0(/)
@@ -188,8 +175,10 @@ interrupt(/)
 timer_handler(/)
     {pusha}
     {mov [0x10008], esp}
-    {mov esp, [0x1000c]}
+    *scheduler(/)
+    {mov esp, [0x10008]}
     {mov al, 0x60}
     {out 0x20, al}
+    {popa}
     {iret}
 **

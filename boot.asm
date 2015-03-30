@@ -24,19 +24,6 @@ beginning:
   mov cx, 2
   xor dh, dh
   int 0x13
-  %assign i 1
-  %rep 4
-  mov ax, 0x800 + 0x100 * i
-  mov es, ax
-  xor bx, bx
-  mov ah, 2
-  mov al, 8
-  mov dl, 0x80
-  mov cx, 2
-  mov dh, i
-  int 0x13
-  %assign i i + 1
-  %endrep
   
   ; переход на ядро
   jmp 0x8000    

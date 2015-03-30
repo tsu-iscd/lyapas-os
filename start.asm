@@ -37,6 +37,19 @@ protected:
   add esp,1412
   pop eax
 
+  mov esp, [0x10008]
+
+  ; PIT initialization
+  mov al, 0x34
+  out 0x43, al
+  mov al, 0xff
+  out 0x40, al
+  out 0x40, al
+
+  popa
+  sti
+  iret
+
   jmp $
 
 section .data
@@ -59,6 +72,6 @@ align 8
 _idt:
   resq 256
 _process_states:
-  resd 20
+  resb 24
 _stack_pointers:
   resd 16
