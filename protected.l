@@ -96,11 +96,18 @@ print_number(n/)
 **
 
 load_procs(/)
-    K[10004h] = q
+    K[10004h] = s
+    K[s] = q s + 4 = s
+    3 = Ks Ds
+    0 = Ks Ds
+    2 = Ks Ds
+    0x11 = Ks Ds
+    1 = Ks Ds
+    1 = Ks 
     0x7c0000 = p _i
     P1  Di#3 ?-2
         p = K[q]
-        p - 0x40000 = p
+        p - 0x10000 = p
         q + 4 = q ?=1
     P2
     @+L2(3)
@@ -109,6 +116,7 @@ load_procs(/)
     [proc_2] = L2.2
     _i
     K[10004h] = q
+    K[q] = q
     P3  Di#3 ?-4
         K[q] - 4 = s
         0x606 = K[s]
@@ -117,8 +125,8 @@ load_procs(/)
         s - 4 = s
         L2i = K[s]
         s - 24 = s
-        K[q] - 0x20000 = K[s] + 1416 = c
-        K[q] - 0x40000 = K[c]
+        K[q] - 0x8000 = K[s] + 1416 = c
+        K[q] - 0x10000 = K[c]
         s - 8 = K[q]
         q + 4 = q ?=3
     P4
@@ -126,16 +134,14 @@ load_procs(/)
 **
 
 scheduler(/)
-    @+F2(3)
-    0x11 = F2.0
-    1 = F2.1 = F2.2
-    2 = a
-    K[10004h] = p = q
+    K[10004h] = s
+    K[s] = p = q s + 4 = k + 2 = a + 1 = c
     {sti}
     P1  _i
-    P2  Di#3 ?-1 a?-3
-        F2i > 4 ?+2
-    P3  F2i & 1 ?-2
+    P2  Di#Kk ?-1 Ka?-3
+        c + i = s
+        Ks > 4 ?+2
+    P3  Ks & 1 ?-2
         {push ebp}
         {pushf}
         {push dword 0x8}
