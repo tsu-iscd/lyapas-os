@@ -25,6 +25,7 @@ protected:
   mov ss, ax
   ; вызов модуля protected
   mov esp, 0x800000
+  mov dword [0x10004], _stack_pointers
   mov eax, 0x100000
   push eax
   sub esp,1412
@@ -56,3 +57,5 @@ section .bss
 align 8
 _idt:
   resq 256
+_stack_pointers:
+  resd 16

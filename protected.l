@@ -8,14 +8,8 @@ _protected(/)
     *construct_idt(/)
     {lidt [_idtr]}
     *init_pic(/)
-    @+L1(3) _i
-    0x7c0000 = p
-    P1  Di#3 ?-2
-        p = L1i
-        p - 0x40000 = p ?=1
-    P2
-    *load_procs(L1/)
-    *scheduler(L1/)
+    *load_procs(/)
+    *scheduler(/)
 **
 
 *** print string on screen
@@ -101,32 +95,42 @@ print_number(n/)
     P3  *print(F1/)
 **
 
-load_procs(L1/)
+load_procs(/)
+    K[10004h] = q
+    0x7c0000 = p _i
+    P1  Di#3 ?-2
+        p = K[q]
+        p - 0x40000 = p
+        q + 4 = q ?=1
+    P2
     @+L2(3)
     [proc_0] = L2.0
     [proc_1] = L2.1
     [proc_2] = L2.2
     _i
-    P1  Di#3 ?-2
-        L1i - 4 = s
+    K[10004h] = q
+    P3  Di#3 ?-4
+        K[q] - 4 = s
         0x606 = K[s]
         s - 4 = s
         8 = K[s]
         s - 4 = s
         L2i = K[s]
         s - 24 = s
-        L1i - 0x20000 = K[s] + 1416 = c
-        L1i - 0x40000 = K[c]
-        s - 8 = L1i ?=1
-    P2
+        K[q] - 0x20000 = K[s] + 1416 = c
+        K[q] - 0x40000 = K[c]
+        s - 8 = K[q]
+        q + 4 = q ?=3
+    P4
     @-L2
 **
 
-scheduler(L1/)
+scheduler(/)
     @+F2(3)
     0x11 = F2.0
     1 = F2.1 = F2.2
     2 = a
+    K[10004h] = p = q
     {sti}
     P1  _i
     P2  Di#3 ?-1 a?-3
@@ -136,13 +140,14 @@ scheduler(L1/)
         {pushf}
         {push dword 0x8}
         {push dword .P4}
-        {mov [0x10004], esp}
-        L1i
+        {mov [0x1000c], esp}
+        i * 4 + p = q
+        K[q]
         {mov esp, eax}
         {popa}
         {iret}
     P4  {pop ebp}
-        K[10008h] = L1i ?=2
+        K[10008h] = K[q] ?=2
 **
 
 proc_0(/)
@@ -177,7 +182,7 @@ interrupt(/)
 timer_handler(/)
     {pusha}
     {mov [0x10008], esp}
-    {mov esp, [0x10004]}
+    {mov esp, [0x1000c]}
     {mov al, 0x60}
     {out 0x20, al}
     {iret}
