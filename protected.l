@@ -89,28 +89,31 @@ print_number(n/)
 **
 
 load_procs(/)
+    4 = n
     K[10004h] = s
     K[s] = q s + 4 = s
-    3 = Ks Ds
+    n = Ks Ds
     0 = Ks Ds
-    2 = Ks Ds
+    n - 1 = Ks Ds
     0x11 = Ks Ds
+    1 = Ks Ds
     1 = Ks Ds
     1 = Ks 
     0x7c0000 = p _i
-    P1  Di#3 ?-2
+    P1  Di#n ?-2
         p = K[q]
         p - 0x10000 = p
         q + 4 = q ?=1
     P2
-    @+L2(3)
+    @+L2(n)
     [proc_0] = L2.0
     [proc_1] = L2.1
     [proc_2] = L2.2
+    [proc_3] = L2.3
     _i
     K[10004h] = q
     K[q] = q
-    P3  Di#3 ?-4
+    P3  Di#n ?-4
         K[q] - 4 = s
         0x606 = K[s]
         s - 4 = s
@@ -148,15 +151,22 @@ proc_0(/)
 **
 
 proc_1(/)
-    @+F1(16)
-    @'Proc 1'>F1
+    @+F1(24)
+    @'Proc 1              '>F1
     10@>F1
     P1 *print(F1/) ?=1
 **
 
 proc_2(/)
-    @+F1(16)
-    @'Proc 2'>F1
+    @+F1(24)
+    @'       Proc 2       '>F1
+    10@>F1
+    P1 *print(F1/) ?=1
+**
+
+proc_3(/)
+    @+F1(24)
+    @'              Proc 3'>F1
     10@>F1
     P1 *print(F1/) ?=1
 **
