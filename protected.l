@@ -21,13 +21,13 @@ print(F1/)
         ?(s >= 32)2
         F1j#10?+1
         k ; 160 = x
-        k + 160 - x = k ?=1
+        k + 160 - x = k ?=5
     P2  k + 0xb8000 = i
         F1j = Ki Di Dk
         7 = Ki Di Dk
-        ?(k < 4000)1
+    P5  ?(k < 4000)1
         0xb8000 = p + 160 = r
-        _q 3842 = k
+        _q 3840 = k
     P3  Dq#3840?-1
         Kr = Kp Dp Dr ?=3
     P4  k = K[10000h]
