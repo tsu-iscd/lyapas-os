@@ -39,13 +39,26 @@ protected:
 
   mov esp, [0x10008]
 
+  ; Keyboard initialization
+  mov al, 0xae
+  out 0x64, al
+  mov al, 0xf3
+  out 0x60, al
+  mov al, 0x7f
+  out 0x60, al
+
   ; PIT initialization
   mov al, 0x34
   out 0x43, al
   mov al, 0xff
   out 0x40, al
   out 0x40, al
+  mov al, 0xf4
+  out 0x60, al
 
+  ; unmask timer
+  mov al, 0xfc
+  out 0x21, al
   popa
   sti
   iret

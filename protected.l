@@ -44,7 +44,7 @@ init_pic(/)
     {out 0x21, al}
     {mov al, 0x01}  ***ICW4
     {out 0x21, al}
-    {mov al, 0xfe}  ***OCW1
+    {mov al, 0xff}  ***OCW1
     {out 0x21, al}
     *** Slave PIC
     {mov al, 0x11}  ***ICW1
@@ -131,7 +131,7 @@ scheduler(/)
     K[10004h] = s
     K[s] = p
     s + 4 = n + 1 = i + 1 = a + 1 = c
-    Ki * 4 + p = q
+    Ki = j * 4 + p = q
     K[10008h] = K[q]
     P1  Dj#Kn ?+2 Oj 
     P2  c + j = s
@@ -163,16 +163,17 @@ proc_2(/)
 
 create_int_list(L1/)
     _i
-P1  Di#49 ?-2
-    [interrupt]=L1i ?=1
-P2  [timer_handler]=L1.32
+    P1  Di#49 ?-2
+        [interrupt] = L1i ?=1
+    P2  [timer_interrupt] = L1.32
+        [keyboard_interrupt] = L1.33
 **
 
 interrupt(/)
     {iret}
 **
 
-timer_handler(/)
+timer_interrupt(/)
     {pusha}
     {mov [0x10008], esp}
     *scheduler(/)
@@ -181,4 +182,43 @@ timer_handler(/)
     {out 0x20, al}
     {popa}
     {iret}
+**
+
+keyboard_interrupt(/)
+    {pusha}
+    {mov al, 0xad}
+    {out 0x64, al}
+    {xor eax, eax}
+    *handle_scancode(/)
+    {mov al, 0x61}
+    {out 0x20, al}
+    {mov al, 0xae}
+    {out 0x64, al}
+    {popa}
+    {iret}
+**
+
+handle_scancode(/)
+    ***print_number(12345/)
+    {in al, 0x60}
+    = k # 0xe0 ?-1
+    k # 0xf0 ?-2
+    ?=3
+    P1
+    {xor eax, eax}
+    {in al, 0x60}
+    # 0xf0 ?+3
+    P2
+    {xor eax, eax}
+    {in al, 0x60}
+    P3  
+        ?(k < 2)4
+        ?(k > 4)4
+        K[10004h] + 6 = a + k = s
+        Yk
+        Ks = c & 1 ?-31
+            YKa  c & 0xfe = Ks ?=4
+        P31
+            DKa  c | 1 = Ks
+    P4
 **
