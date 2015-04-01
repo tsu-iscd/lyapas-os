@@ -1,6 +1,7 @@
 _protected(/)
     {extern _idtr}
     OK[10000h]
+    OK10010h
     @+F1(16)
     @'Welcome to OS LYAPAS!'>F1
     10@>F1
@@ -195,9 +196,12 @@ interrupt(/)
 
 timer_interrupt(/)
     {pusha}
+    DK10010h # 16 ?+1
+    OK10010h
     {mov [0x10008], esp}
     *scheduler(/)
     {mov esp, [0x10008]}
+    P1
     {mov al, 0x60}
     {out 0x20, al}
     {popa}
