@@ -1,15 +1,18 @@
 _protected(/)
     {extern _idtr}
     OK[10000h]
-    OK10010h
+    31 = K10010h
     @+F1(16)
     @'Welcome to OS LYAPAS!'>F1
     10@>F1
     *print(F1/)
     *construct_idt(/)
     {lidt [_idtr]}
-    *init_pic(/)
+    *init_controllers(/)
     *load_procs(/)
+    {mov esp, [0x10008]}
+    {popa}
+    {iret}
 **
 
 *** print string on screen
@@ -38,8 +41,8 @@ print(F1/)
     P4  k = K[10000h]
 **
 
-*** initialization PICs
-init_pic(/)
+*** initialization PIC, PIT, PS/2
+init_controllers(/)
     *** Master PIC
     {mov al, 0x11}  ***ICW1
     {out 0x20, al}
@@ -51,6 +54,7 @@ init_pic(/)
     {out 0x21, al}
     {mov al, 0xff}  ***OCW1
     {out 0x21, al}
+
     *** Slave PIC
     {mov al, 0x11}  ***ICW1
     {out 0xa0, al}
@@ -62,6 +66,27 @@ init_pic(/)
     {out 0xa1, al}
     {mov al, 0xff}  ***OCW1
     {out 0xa1, al}
+
+    *** Keyboard
+    {mov al, 0xae}
+    {out 0x64, al}
+    {mov al, 0xf3}
+    {out 0x60, al}
+    {mov al, 0x7f}
+    {out 0x60, al}
+
+    *** Timer
+    {mov al, 0x34}
+    {out 0x43, al}
+    {mov al, 0xff}
+    {out 0x40, al}
+    {out 0x40, al}
+    {mov al, 0xf4}
+    {out 0x60, al}
+
+    *** Unmask timer and keyboard
+    {mov al, 0xfc}
+    {out 0x21, al}
 **
 
 *** constructing IDT
@@ -160,7 +185,7 @@ proc_1(/)
     @'Proc 1'>F1
     10@>F1
     P1 *print(F1/) _i
-        P2 Di#100000?+2
+        P2 Di#300000?+2
     ?=1
 **
 
@@ -169,7 +194,7 @@ proc_2(/)
     @'       Proc 2'>F1
     10@>F1
     P1 *print(F1/) _i
-        P2 Di#100000?+2
+        P2 Di#300000?+2
     ?=1
 **
 
@@ -178,7 +203,7 @@ proc_3(/)
     @'              Proc 3'>F1
     10@>F1
     P1 *print(F1/) _i
-        P2 Di#100000?+2
+        P2 Di#300000?+2
     ?=1
 **
 
@@ -196,7 +221,7 @@ interrupt(/)
 
 timer_interrupt(/)
     {pusha}
-    DK10010h # 16 ?+1
+    DK10010h # 32 ?+1
     OK10010h
     {mov [0x10008], esp}
     *scheduler(/)
