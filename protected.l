@@ -21,7 +21,11 @@ print(F1/)
         ?(s >= 32)2
         F1j#10?+1
         k ; 160 = x
+        ?(k >= 3840)11
         k + 160 - x = k ?=5
+        P11 Dk Dx#160?-5
+            k + 0xb8000 = i
+            OKi  ?=11
     P2  k + 0xb8000 = i
         F1j = Ki Di Dk
         7 = Ki Di Dk
@@ -152,23 +156,29 @@ proc_0(/)
 
 proc_1(/)
     @+F1(24)
-    @'Proc 1              '>F1
+    @'Proc 1'>F1
     10@>F1
-    P1 *print(F1/) ?=1
+    P1 *print(F1/) _i
+        P2 Di#100000?+2
+    ?=1
 **
 
 proc_2(/)
     @+F1(24)
-    @'       Proc 2       '>F1
+    @'       Proc 2'>F1
     10@>F1
-    P1 *print(F1/) ?=1
+    P1 *print(F1/) _i
+        P2 Di#100000?+2
+    ?=1
 **
 
 proc_3(/)
     @+F1(24)
     @'              Proc 3'>F1
     10@>F1
-    P1 *print(F1/) ?=1
+    P1 *print(F1/) _i
+        P2 Di#100000?+2
+    ?=1
 **
 
 create_int_list(L1/)
@@ -209,7 +219,6 @@ keyboard_interrupt(/)
 **
 
 handle_scancode(/)
-    ***print_number(12345/)
     {in al, 0x60}
     = k # 0xe0 ?-1
     k # 0xf0 ?-2
