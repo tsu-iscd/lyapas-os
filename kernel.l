@@ -1,4 +1,4 @@
-_protected(/)
+kernel(/)
     {extern _idtr}
     OK[10000h]
     31 = K10010h
@@ -15,8 +15,6 @@ _protected(/)
     {iret}
 **
 
-*** print string on screen
-*** F1 - string
 print(F1/)
      K[10000h] = k
      _j
@@ -41,30 +39,29 @@ print(F1/)
     P4  k = K[10000h]
 **
 
-*** initialization PIC, PIT, PS/2
 init_controllers(/)
     *** Master PIC
-    {mov al, 0x11}  ***ICW1
+    {mov al, 0x11}
     {out 0x20, al}
-    {mov al, 0x20}  ***ICW2
+    {mov al, 0x20}
     {out 0x21, al}
-    {mov al, 0x04}  ***ICW3
+    {mov al, 0x04}
     {out 0x21, al}
-    {mov al, 0x01}  ***ICW4
+    {mov al, 0x01}
     {out 0x21, al}
-    {mov al, 0xff}  ***OCW1
+    {mov al, 0xfc}
     {out 0x21, al}
 
     *** Slave PIC
-    {mov al, 0x11}  ***ICW1
+    {mov al, 0x11}
     {out 0xa0, al}
-    {mov al, 0x28}  ***ICW2
+    {mov al, 0x28}
     {out 0xa1, al}
-    {mov al, 0x02}  ***ICW3
+    {mov al, 0x02}
     {out 0xa1, al}
-    {mov al, 0x01}  ***ICW4
+    {mov al, 0x01}
     {out 0xa1, al}
-    {mov al, 0xff}  ***OCW1
+    {mov al, 0xff}
     {out 0xa1, al}
 
     *** Keyboard
@@ -83,13 +80,8 @@ init_controllers(/)
     {out 0x40, al}
     {mov al, 0xf4}
     {out 0x60, al}
-
-    *** Unmask timer and keyboard
-    {mov al, 0xfc}
-    {out 0x21, al}
 **
 
-*** constructing IDT
 construct_idt(/)
     {extern _idt}
     _j
@@ -106,16 +98,65 @@ construct_idt(/)
     Ki & 0xfe = Ki
 **
 
-print_number(n/)
-    @+F1(16)
-    P1  n ; 10 + '0' @>F1
-        n / 10 = n ?+1
-        _i Q1 = j > 1 = k
-    P2  Di#k ?-3 Yj
-        F1i = a
-        F1j = F1i
-        a = F1j ?=2
-    P3  *print(F1/)
+create_int_list(L1/)
+    _i
+    P1  Di#49 ?-2
+        [empty_interrupt] = L1i ?=1
+    P2  [timer_interrupt] = L1.32
+        [keyboard_interrupt] = L1.33
+**
+
+empty_interrupt(/)
+    {iret}
+**
+
+timer_interrupt(/)
+    {cli}
+    {pusha}
+    DK10010h # 32 ?+1
+    OK10010h
+    {mov [0x10008], esp}
+    *scheduler(/)
+    {mov esp, [0x10008]}
+    P1
+    {mov al, 0x60}
+    {out 0x20, al}
+    {popa}
+    {iret}
+**
+
+keyboard_interrupt(/)
+    {pusha}
+    {mov al, 0xad}
+    {out 0x64, al}
+    *handle_scancode(/)
+    {mov al, 0x61}
+    {out 0x20, al}
+    {mov al, 0xae}
+    {out 0x64, al}
+    {popa}
+    {iret}
+**
+
+handle_scancode(/)
+    {xor eax, eax}
+    {in al, 0x60}
+    = k # 0xe0 ?-1
+    k # 0xf0 ?-2
+    ?=3
+    P1
+    {xor eax, eax}
+    {in al, 0x60}
+    # 0xf0 ?+3
+    P2
+    {xor eax, eax}
+    {in al, 0x60}
+    P3  ?(k < 2)4 ?(k > 4)4
+        K[10004h] + 6 = a + k = s
+        Yk  Ks = c & 1 ?-31
+        YKa  c & 0xfe = Ks ?=4
+        P31 DKa  c | 1 = Ks
+    P4
 **
 
 load_procs(/)
@@ -177,7 +218,7 @@ scheduler(/)
 **
 
 proc_0(/)
-    P1 ?=1
+    P1 31 = K10010h ?=1
 **
 
 proc_1(/)
@@ -205,68 +246,4 @@ proc_3(/)
     P1 *print(F1/) _i
         P2 Di#300000?+2
     ?=1
-**
-
-create_int_list(L1/)
-    _i
-    P1  Di#49 ?-2
-        [interrupt] = L1i ?=1
-    P2  [timer_interrupt] = L1.32
-        [keyboard_interrupt] = L1.33
-**
-
-interrupt(/)
-    {iret}
-**
-
-timer_interrupt(/)
-    {pusha}
-    DK10010h # 32 ?+1
-    OK10010h
-    {mov [0x10008], esp}
-    *scheduler(/)
-    {mov esp, [0x10008]}
-    P1
-    {mov al, 0x60}
-    {out 0x20, al}
-    {popa}
-    {iret}
-**
-
-keyboard_interrupt(/)
-    {pusha}
-    {mov al, 0xad}
-    {out 0x64, al}
-    {xor eax, eax}
-    *handle_scancode(/)
-    {mov al, 0x61}
-    {out 0x20, al}
-    {mov al, 0xae}
-    {out 0x64, al}
-    {popa}
-    {iret}
-**
-
-handle_scancode(/)
-    {in al, 0x60}
-    = k # 0xe0 ?-1
-    k # 0xf0 ?-2
-    ?=3
-    P1
-    {xor eax, eax}
-    {in al, 0x60}
-    # 0xf0 ?+3
-    P2
-    {xor eax, eax}
-    {in al, 0x60}
-    P3  
-        ?(k < 2)4
-        ?(k > 4)4
-        K[10004h] + 6 = a + k = s
-        Yk
-        Ks = c & 1 ?-31
-            YKa  c & 0xfe = Ks ?=4
-        P31
-            DKa  c | 1 = Ks
-    P4
 **

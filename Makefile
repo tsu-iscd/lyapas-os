@@ -8,21 +8,21 @@ disk.img:
 boot: boot.asm
 	nasm -f bin -o $@ $<
 
-protected.o: protected.l sin.sh ltc
-	cat protected.l | ./sin.sh > protected_tmp.l
-	./ltc protected_tmp.l
-	mv protected_tmp.s protected.asm
-	rm -f protected_tmp.err
-	nasm -f elf -o $@ protected.asm
+kernel.o: kernel.l sin.sh ltc
+	cat kernel.l | ./sin.sh > kernel_tmp.l
+	./ltc kernel_tmp.l
+	mv kernel_tmp.s kernel.asm
+	rm -f kernel_tmp.err
+	nasm -f elf -o $@ kernel.asm
 
 start.o: start.asm
 	nasm -f elf -o $@ $<
 
-kernel: start.o protected.o
+kernel: start.o kernel.o
 	ld -melf_i386 --oformat=binary -Tlinker.ld -o $@ $^
 
 clean:
-	rm -f disk.img boot protected.o start.o kernel protected_tmp.l protected.asm
+	rm -f disk.img boot *.o kernel kernel_tmp.l kernel.asm
 
 run: bochs.txt disk.img
 	bochs -qf $<
