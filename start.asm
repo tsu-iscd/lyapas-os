@@ -9,7 +9,7 @@ beginning:
   cli
   lgdt [_gdtr]
   
-  ; Переход в защищенный режим
+  ; turn to protected mode
   mov eax, cr0
   or  eax, 1
   mov cr0, eax
@@ -24,7 +24,38 @@ protected:
   mov esp, 0x800000
   mov dword [0x10004], _process_states
 
-  ; Вызов модуля protected
+  ; create page tables
+  mov ebx, 0x0
+  mov edx, 0x12000
+  xor eax, eax
+  .fill_page_table:
+    mov ecx, ebx
+    or ecx, 3
+    mov [edx + eax * 4], ecx
+    add ebx, 0x1000
+    inc eax
+    cmp eax, 0x2000
+    jl .fill_page_table
+
+  ; create page_directory
+  or edx, 3
+  mov ebx, _page_directory
+  mov ecx, 8
+  .fill_page_directory:
+    mov [ebx], edx
+    add edx, 0x1000
+    add ebx, 4
+    loop .fill_page_directory
+
+  ; turn to paging
+  mov eax, _page_directory
+  add eax, 4
+  mov cr3, eax
+
+  mov eax, cr0
+  or eax, 0x80000000
+  mov cr0, eax
+
   mov eax, 0x100000
   push eax
   sub esp,1412
@@ -44,6 +75,7 @@ _gdtr:
 _idtr:
   dw 256 * 8
   dd _idt
+_page_directory equ 0x11000
 
 section .bss
 align 8
