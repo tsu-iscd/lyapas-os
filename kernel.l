@@ -10,7 +10,17 @@ kernel(/)
     {lidt [_idtr]}
     *init_controllers(/)
     *load_procs(/)
-    {mov esp, [0x10008]}
+    {mov [0x10024], esp}
+    {mov esp, [0x10058]}
+    {mov word [0x10028], 0x10}
+    {mov word [0x10070], 0x23}
+    {mov ax, 0x2b}
+    {ltr ax}
+    {mov ax, 0x23}
+    {mov ds, ax}
+    {mov es, ax} 
+    {mov fs, ax} 
+    {mov gs, ax}
     {popa}
     {iret}
 **
@@ -115,9 +125,8 @@ timer_interrupt(/)
     {pusha}
     DK10010h # 32 ?+1
     OK10010h
-    {mov [0x10008], esp}
     *scheduler(/)
-    {mov esp, [0x10008]}
+    {mov esp, [0x10058]}
     P1
     {mov al, 0x60}
     {out 0x20, al}
@@ -126,6 +135,7 @@ timer_interrupt(/)
 **
 
 keyboard_interrupt(/)
+    {cli}
     {pusha}
     {mov al, 0xad}
     {out 0x64, al}
@@ -184,11 +194,17 @@ load_procs(/)
     _i
     K[10004h] = q
     K[q] = q
+    0x7c0000 = w
     P3  Di#n ?-4
         K[q] - 4 = s
-        0x606 = K[s]
+        0x23 = K[s]
         s - 4 = s
-        8 = K[s]
+        w = K[s]
+        s - 4 = s
+        w - 0x10000 = w
+        0x7606 = K[s]
+        s - 4 = s
+        0x1b = K[s]
         s - 4 = s
         L2i = K[s]
         s - 24 = s
@@ -197,7 +213,7 @@ load_procs(/)
         s - 8 = K[q]
         q + 4 = q ?=3
     P4  K[10004h] = p K[p] = p
-    K[p] = K[10008h]
+    K[p] = K[10058h]
     @-L2
 **
 
@@ -206,14 +222,14 @@ scheduler(/)
     K[s] = p
     s + 4 = n + 1 = i + 1 = a + 1 = c
     Ki = j * 4 + p = q
-    K[10008h] = K[q]
+    K[10058h] = K[q]
     P1  Dj#Kn ?+2 Oj 
     P2  c + j = s
         Ka?-3
         Ks > 4 ?+1
     P3  Ks & 1 ?-1
     j * 4 + p = p
-    K[p] = K[10008h]
+    K[p] = K[10058h]
     j = Ki
 **
 

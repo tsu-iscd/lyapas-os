@@ -8,8 +8,8 @@ disk.img:
 boot: boot.asm
 	nasm -f bin -o $@ $<
 
-kernel.o: kernel.l sin.sh ltc
-	cat kernel.l | ./sin.sh > kernel_tmp.l
+kernel.o: kernel.l l_sin.sh ltc
+	cat kernel.l | ./l_sin.sh > kernel_tmp.l
 	./ltc kernel_tmp.l
 	mv kernel_tmp.s kernel.asm
 	rm -f kernel_tmp.err
@@ -29,3 +29,6 @@ run: bochs.txt disk.img
 
 ltc: ltc.cpp
 	g++ -std=c++11 -o $@ $<
+
+disasm_kernel: kernel
+	ndisasm -b 32 -k 0,26 $<
