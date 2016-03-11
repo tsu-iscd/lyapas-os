@@ -10,8 +10,10 @@ kernel(/)
     {lidt [_idtr]}
     *init_controllers(/)
     *load_procs(/)
-    {mov [0x10024], esp}
+    *fill_paging_tables(/)
+            {nop}
     {mov esp, [0x10058]}
+    {mov [0x10024], esp}
     {mov word [0x10028], 0x10}
     {mov word [0x10070], 0x23}
     {mov ax, 0x2b}
@@ -21,6 +23,17 @@ kernel(/)
     {mov es, ax} 
     {mov fs, ax} 
     {mov gs, ax}
+
+*** paging
+    {mov eax, cr3}
+    {or eax, 0x12000}
+    {mov cr3, eax}
+    {mov eax, cr0}
+    {or eax, 0x80000000}
+    {mov cr0, eax}
+***    {mov eax, 0x13000}
+***    {mov cr3, eax}
+
     {popa}
     {iret}
 **
@@ -102,7 +115,7 @@ construct_idt(/)
     P1  Dj#0x31?-2
         L1j & 0x0000ffff | 0x00080000 = K[i]
         i + 4 = i
-        L1j & 0xffff0000 | 0x00008f00 = K[i]
+        L1j & 0xffff0000 | 0x0000ef00 = K[i]
         i + 4 = i ?=1
     P2  i - 3 = i
     Ki & 0xfe = Ki
@@ -116,15 +129,27 @@ create_int_list(L1/)
         [keyboard_interrupt] = L1.33
 **
 
+fill_paging_tables(/)
+    0x12000 = a
+    0x100000 = b
+    0x17f = c
+    _i
+    P1 Di#1024?-2
+        b | 0x3f = K[a]
+        a + 4 = a
+        _j
+        P11 Dj#1024?-1
+            c = K[b] + 0x1000 = c
+            b + 4 = b ?=11
+    P2 
+**
+
 empty_interrupt(/)
     {iret}
 **
 
 timer_interrupt(/)
     {cli}
-    {pusha}
-    DK10010h # 32 ?+1
-    OK10010h
     *scheduler(/)
     {mov esp, [0x10058]}
     P1
@@ -180,23 +205,16 @@ load_procs(/)
     1 = Ks Ds
     1 = Ks Ds
     1 = Ks 
-    0x7c0000 = p _i
-    P1  Di#n ?-2
-        p = K[q]
-        p - 0x10000 = p
-        q + 4 = q ?=1
-    P2
     @+L2(n)
     [proc_0] = L2.0
     [proc_1] = L2.1
     [proc_2] = L2.2
     [proc_3] = L2.3
+
+    0x7bfffc = p - 0x100 = w _i
     _i
-    K[10004h] = q
-    K[q] = q
-    0x7c0000 = w
     P3  Di#n ?-4
-        K[q] - 4 = s
+        p = K[q] - 4 = s
         0x23 = K[s]
         s - 4 = s
         w = K[s]
@@ -211,7 +229,9 @@ load_procs(/)
         K[q] - 0x8000 = K[s] + 1416 = c
         K[q] - 0x10000 = K[c]
         s - 8 = K[q]
-        q + 4 = q ?=3
+        q + 4 = q
+        p - 0x10000 = p
+        ?=3
     P4  K[10004h] = p K[p] = p
     K[p] = K[10058h]
     @-L2
@@ -229,7 +249,7 @@ scheduler(/)
         Ks > 4 ?+1
     P3  Ks & 1 ?-1
     j * 4 + p = p
-    K[p] = K[10058h]
+    K[p] = K[10058h] = K[10024h]
     j = Ki
 **
 
