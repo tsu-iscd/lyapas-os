@@ -57,8 +57,13 @@ print(F1/)
     P5  ?(k < 4000)1
         0xb8000 = p + 160 = r
         _q 3840 = k
-    P3  Dq#3840?-1
+    P3  Dq#3840?-31
         Kr = Kp Dp Dr ?=3
+        P31 _q
+            0xb8f00 = w
+        P32 Dq#40?-1
+            OK[w]
+            w + 4 = w ?=32
     P4  k = K[10000h]
 **
 
@@ -127,6 +132,7 @@ create_int_list(L1/)
         [empty_interrupt] = L1i ?=1
     P2  [timer_interrupt] = L1.32
         [keyboard_interrupt] = L1.33
+        [system_call] = L1.48
 **
 
 fill_paging_tables(/)
@@ -134,15 +140,22 @@ fill_paging_tables(/)
     0x100000 = b
     0x17f = c
     _i
-    P1 Di#1024?-2
+    P1 Di#1024?-12
         b | 0x3f = K[a]
         a + 4 = a
         _j
         P11 Dj#1024?-1
             c = K[b] + 0x1000 = c
             b + 4 = b ?=11
-    P2 
+    P12 
 **
+
+system_call(/)
+    {cli}
+    *print(F1/)
+    {iret}
+**
+
 
 empty_interrupt(/)
     {iret}
@@ -150,6 +163,7 @@ empty_interrupt(/)
 
 timer_interrupt(/)
     {cli}
+    {pusha}
     *scheduler(/)
     {mov esp, [0x10058]}
     P1
@@ -254,14 +268,15 @@ scheduler(/)
 **
 
 proc_0(/)
-    P1 31 = K10010h ?=1
+    P1 ?=1
 **
 
 proc_1(/)
+    {nop}
     @+F1(24)
     @'Proc 1'>F1
     10@>F1
-    P1 *print(F1/) _i
+    P1  {int 0x30} _i
         P2 Di#300000?+2
     ?=1
 **
@@ -270,7 +285,7 @@ proc_2(/)
     @+F1(24)
     @'       Proc 2'>F1
     10@>F1
-    P1 *print(F1/) _i
+    P1  {int 0x30} _i
         P2 Di#300000?+2
     ?=1
 **
@@ -279,7 +294,7 @@ proc_3(/)
     @+F1(24)
     @'              Proc 3'>F1
     10@>F1
-    P1 *print(F1/) _i
+    P1  {int 0x30} _i
         P2 Di#300000?+2
     ?=1
 **
