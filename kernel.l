@@ -11,9 +11,7 @@ kernel(/)
     *init_controllers(/)
     *load_procs(/)
     *fill_paging_tables(/)
-            {nop}
     {mov esp, [0x10058]}
-    {mov [0x10024], esp}
     {mov word [0x10028], 0x10}
     {mov word [0x10070], 0x23}
     {mov ax, 0x2b}
@@ -164,9 +162,9 @@ empty_interrupt(/)
 timer_interrupt(/)
     {cli}
     {pusha}
+    {mov [0x10058], esp}
     *scheduler(/)
     {mov esp, [0x10058]}
-    P1
     {mov al, 0x60}
     {out 0x20, al}
     {popa}
@@ -199,34 +197,40 @@ handle_scancode(/)
     # 0xf0 ?+3
     P2
     {xor eax, eax}
-    {in al, 0x60}
+    {in al, 0x60} 
+    ?=4
     P3  ?(k < 2)4 ?(k > 4)4
-        K[10004h] + 6 = a + k = s
-        Yk  Ks = c & 1 ?-31
-        YKa  c & 0xfe = Ks ?=4
-        P31 DKa  c | 1 = Ks
+        k - 1 * 16 + 0x10200 = s
+        K[s] # 1 = K[s]
     P4
 **
 
 load_procs(/)
-    4 = n
-    K[10004h] = s
-    K[s] = q s + 4 = s
-    n = Ks Ds
-    0 = Ks Ds
-    n - 1 = Ks Ds
-    0x11 = Ks Ds
-    1 = Ks Ds
-    1 = Ks Ds
-    1 = Ks 
+    12000h = K[10208h]
+    12000h = K[10218h]
+    12000h = K[10228h]
+    12000h = K[10238h]
+
+    1020Ch = k
+    10210h = K[k]
+    1021Ch = k
+    10220h = K[k]
+    1022Ch = k
+    10230h = K[k]
+    1023Ch = k
+    10200h = K[k] = K[10004h] = K[10008h] = s
+
+    0x10001 = K[10200h]
+    1 = K[10210h] = K[10220h] = K[10230h]
+
     @+L2(n)
     [proc_0] = L2.0
     [proc_1] = L2.1
     [proc_2] = L2.2
     [proc_3] = L2.3
 
-    0x7bfffc = p - 0x100 = w _i
-    _i
+    0x7bfffc = p - 0x100 = w
+    10204h = q 4 = n _i
     P3  Di#n ?-4
         p = K[q] - 4 = s
         0x23 = K[s]
@@ -243,28 +247,27 @@ load_procs(/)
         K[q] - 0x8000 = K[s] + 1416 = c
         K[q] - 0x10000 = K[c]
         s - 8 = K[q]
-        q + 4 = q
+        q + 16 = q
         p - 0x10000 = p
         ?=3
-    P4  K[10004h] = p K[p] = p
-    K[p] = K[10058h]
+    P4  K[10004h] + 4 = p
+    K[p] = K[10058h] + 52 = K[10024h]
     @-L2
 **
 
 scheduler(/)
-    K[10004h] = s
-    K[s] = p
-    s + 4 = n + 1 = i + 1 = a + 1 = c
-    Ki = j * 4 + p = q
-    K[10058h] = K[q]
-    P1  Dj#Kn ?+2 Oj 
-    P2  c + j = s
-        Ka?-3
-        Ks > 4 ?+1
-    P3  Ks & 1 ?-1
-    j * 4 + p = p
-    K[p] = K[10058h] = K[10024h]
-    j = Ki
+    K[10008h] + 4 = s + 8 = n
+    K[10058h] = K[s]
+    K[n] = n
+
+    P1  K[n] & 1 ?-11
+        K[n] & 0x1000 ?-12  *** check priority
+        P11 n + 12 = n
+            K[n] = n ?=1
+        P12
+
+    n = K[10008h] + 4 = n
+    K[n] = K[10058h] + 52 = K[10024h]
 **
 
 proc_0(/)
@@ -272,7 +275,6 @@ proc_0(/)
 **
 
 proc_1(/)
-    {nop}
     @+F1(24)
     @'Proc 1'>F1
     10@>F1
