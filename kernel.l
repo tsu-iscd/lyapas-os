@@ -22,14 +22,12 @@ kernel(/)
     {mov gs, ax}
 
 *** paging
-    {mov eax, cr3}
-    {or eax, 0x12000}
+    {mov eax, 0x13000}
+    {mov [0x10010], eax}
     {mov cr3, eax}
     {mov eax, cr0}
     {or eax, 0x80000000}
     {mov cr0, eax}
-***    {mov eax, 0x13000}
-***    {mov cr3, eax}
 
     {popa}
     {iret}
@@ -137,22 +135,68 @@ fill_paging_tables(/)
     0x100000 = b
     0x17f = c
     _i
-    P1 Di#1024?-12
+    P1 Di#2?-12
         b | 0x3f = K[a]
         a + 4 = a
         _j
         P11 Dj#1024?-1
             c = K[b] + 0x1000 = c
             b + 4 = b ?=11
-    P12 
+    P12
+
+    0x110000 = b
+    0x13000 = a
+    0x17e = c
+    _k
+    P3  Dk#4 ?-31
+        _i
+        P4  Di#2?-42
+            b | 0x3f = K[a]
+            a + 4 = a
+            _j
+            P41 Dj#1024?-4
+                c = K[b] + 0x1000 = c
+                b + 4 = b ?=41
+            P42
+
+        b - 0x1fe0 = b
+        _i
+        P5  Di#9?-51
+            K[b] | 1 = K[b] 
+            b + 4 = b ?=5
+            P51
+
+        3 - k * 64 + b + 0x1d80 + 0x3c = b
+
+        _i
+        P6  Di#16?-61
+            K[b] | 1 = K[b] 
+            b + 4 = b ?=6
+            P61
+
+        k * 64 + b + 0x100 = b
+        a + 0xff8 = a
+        0x17e = c
+        ?=3
+        
+    P31
+
 **
 
 system_call(/)
     {cli}
+    {pusha}
+    {mov ebx, cr3}
+    {mov eax, 0x12000}
+    {mov cr3, eax}
+
     *print(F1/)
+
+    {mov ebx, [0x10010]}
+    {mov cr3, ebx}
+    {popa}
     {iret}
 **
-
 
 empty_interrupt(/)
     {iret}
@@ -161,11 +205,17 @@ empty_interrupt(/)
 timer_interrupt(/)
     {cli}
     {pusha}
+    {mov eax, 0x12000}
+    {mov cr3, eax}
+
     {mov [0x10058], esp}
     *scheduler(/)
-    {mov esp, [0x10058]}
     {mov al, 0x60}
     {out 0x20, al}
+    {mov esp, [0x10058]}
+
+    {mov ebx, [0x10010]}
+    {mov cr3, ebx}
     {popa}
     {iret}
 **
@@ -173,6 +223,9 @@ timer_interrupt(/)
 keyboard_interrupt(/)
     {cli}
     {pusha}
+    {mov eax, 0x12000}
+    {mov cr3, eax}
+
     {mov al, 0xad}
     {out 0x64, al}
     *handle_scancode(/)
@@ -180,6 +233,9 @@ keyboard_interrupt(/)
     {out 0x20, al}
     {mov al, 0xae}
     {out 0x64, al}
+
+    {mov ebx, [0x10010]}
+    {mov cr3, ebx}
     {popa}
     {iret}
 **
@@ -205,10 +261,10 @@ handle_scancode(/)
 **
 
 load_procs(/)
-    12000h = K[10208h]
-    12000h = K[10218h]
-    12000h = K[10228h]
-    12000h = K[10238h]
+    13000h = K[10208h]
+    14000h = K[10218h]
+    15000h = K[10228h]
+    16000h = K[10238h]
 
     1020Ch = k
     10210h = K[k]
@@ -244,7 +300,7 @@ load_procs(/)
         L2i = K[s]
         s - 24 = s
         K[q] - 0x8000 = K[s] + 1416 = c
-        K[q] - 0x10000 = K[c]
+        K[q] - 0xfffc = K[c]
         s - 8 = K[q]
         q + 16 = q
         p - 0x10000 = p
@@ -269,6 +325,8 @@ scheduler(/)
 
     n = K[10008h] + 4 = n
     K[n] = K[10058h] + 52 = K[10024h]
+    n + 4 = n
+    K[n] = K[10010h]
 **
 
 proc_0(/)
