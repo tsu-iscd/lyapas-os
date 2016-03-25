@@ -1,7 +1,6 @@
 kernel(/)
     {extern _idtr}
     OK[10000h]
-    31 = K10010h
     @+F1(16)
     @'Welcome to OS LYAPAS!'>F1
     10@>F1
@@ -260,8 +259,10 @@ scheduler(/)
     K[10058h] = K[s]
     K[n] = n
 
+    Ol
     P1  K[n] & 1 ?-11
-        K[n] & 0x1000 ?-12  *** check priority
+        K[n] > 16 & 0xf = k ?-12  *** check priority
+        ?(l >= k)12 Dl
         P11 n + 12 = n
             K[n] = n ?=1
         P12
