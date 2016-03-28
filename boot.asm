@@ -24,7 +24,17 @@ beginning:
   mov cx, 2
   xor dh, dh
   int 0x13
-  
+   
+  mov ax, 0x900
+  mov es, ax
+  xor bx, bx
+  mov ah, 2
+  mov al, 8
+  mov dl, 0x80
+  mov cx, 2
+  mov dh, 1
+  int 0x13
+ 
   ; переход на ядро
   jmp 0x8000    
 

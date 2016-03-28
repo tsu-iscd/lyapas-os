@@ -22,7 +22,6 @@ protected:
   mov es, ax
   mov ss, ax
   mov esp, 0x800000
-  mov dword [0x10004], _process_states
 
   mov eax, 0x100000
   push eax
@@ -51,8 +50,3 @@ section .bss
 align 8
 _idt:
   resq 256
-_process_states:
-  dd _stack_pointers
-  resb 20
-_stack_pointers:
-  resd 16
