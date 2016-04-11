@@ -1,10 +1,10 @@
+*** 0x10000 cursor
+*** 0x10004 pointer to head of process state list
+*** 0x10008 pointer to current process state
+
 kernel(/)
     {extern _idtr}
-    OK[10000h]  *** cursor
-    @+F1(16)
-    @'Welcome to OS LYAPAS!'>F1
-    10@>F1
-    *print(F1/)
+    OK[10000h]  *** reset cursor
 
     *construct_idt(/)
     {lidt [_idtr]}
@@ -14,21 +14,21 @@ kernel(/)
     *fill_paging_tables(/)
 
     *** init TSS
-    {mov esp, [0x10058]}
-    {mov word [0x10028], 0x10}
-    {mov word [0x10070], 0x23}
+    {mov word [0xbf08], 0x10}
     {mov ax, 0x2b}
     {ltr ax}
 
+    *** set segment registers
     {mov ax, 0x23}
     {mov ds, ax}
     {mov es, ax} 
     {mov fs, ax} 
     {mov gs, ax}
 
+    {mov esp, [0xbf38]}
+
     *** enable paging
-    {mov eax, 0x13000}
-    {mov [0x10010], eax}
+    {mov eax, 0x12000}
     {mov cr3, eax}
     {mov eax, cr0}
     {or eax, 0x80000000}
@@ -69,7 +69,7 @@ print(F1/)
 
 init_controllers(/)
     *** Master PIC
-    {mov al, 0x11}
+    {mov ax, 0x11}
     {out 0x20, al}
     {mov al, 0x20}
     {out 0x21, al}
@@ -112,9 +112,8 @@ init_controllers(/)
 
 construct_idt(/)
     {extern _idt}
+    {mov eax, _idt} = i
     _j
-    {mov eax, _idt}
-    = i
     @+L1(49)
     *create_int_list(L1/)
     P1  Dj#0x31?-2
@@ -136,34 +135,27 @@ create_int_list(L1/)
 **
 
 fill_paging_tables(/)
-    *** kernel
+    0x20000 = b
     0x12000 = a
-    0x100000 = b
-    0x17f = c
-    _i
-    P1 Di#2?-12
-        b | 0x3f = K[a]
-        a + 4 = a
-        _j
-        P11 Dj#1024?-1
-            c = K[b] + 0x1000 = c
-            b + 4 = b ?=11
-    P12
-
-    *** processes
-    0x110000 = b
-    0x13000 = a
-    0x17f = c
+    0x17c = c
     _k
-    P3  Dk#4 ?-31
+    P1  Dk#4 ?-11
         b | 0x3f = K[a]
         _i
-        P4  Di#20?-41
+        P2  Di#8?-21
             c = K[b] + 0x1000 = c
-            b + 4 = b ?=4
-            P41
+            b + 4 = b ?=2
+            P21
 
-        3 - k * 0x10000 + 0x78017f = c
+        _i c | 1 = c
+        P3  Di#4?-31
+            c = K[b] + 0x1000 = c
+            b + 4 = b ?=3
+            P31
+
+        c | 3 = c
+
+        k * 0x10000 + 0x10017f = c
 
         _i
         P6  Di#16?-61
@@ -172,26 +164,32 @@ fill_paging_tables(/)
             P61
 
         _i
-        P7  Di#988?-71
+        P7  Di#996?-71
             OK[b]
             b + 4 = b ?=7
         P71
 
         a + 0x1000 = a
-        0x17f = c
-        ?=3
-    P31
+        0x17c = c
+        ?=1
+    P11
 **
 
 system_call(/)
     {cli}
     {pusha}
 
-    *** change page directory
     {push esp}
+    {push eax}
+    {push ebx}
+    {push ecx}
+
+    *** disable paging
+    {mov eax, cr0}
+    {and eax, 0x7fffffff}
+    {mov cr0, eax}
+
     {mov ebx, cr3}
-    {mov eax, 0x12000}
-    {mov cr3, eax}
 
     *** convert esp
     {mov ebx, [ebx]}
@@ -215,19 +213,30 @@ system_call(/)
     {and edx, 0xfff}
     {add edx, eax}
 
+    {mov ebp, 0x40000}
+    {pop ecx}
     *** create complex F1
-    {mov ebp, 0x20000}
     {mov byte [ebp + 121], 1}
     {mov [ebp + 620], ecx}
     {mov [ebp + 1020], ecx}
     {mov [ebp + 220], edx}
+    {pop ebx}
+    {mov [ebp + 8], ebx}
+    {pop eax}
+    {mov [ebp + 4], eax}
 
-    *print(F1/)
+    a # 3 ?+0
+    P3 
+        *print(F1/)
+        ?=0
 
-    *** change page directory
+    P0
     {pop esp}
-    {mov ebx, [0x10010]}
-    {mov cr3, ebx}
+
+    *** enable paging
+    {mov eax, cr0}
+    {or eax, 0x80000000}
+    {mov cr0, eax}
 
     {popa}
     {iret}
@@ -241,13 +250,15 @@ timer_interrupt(/)
     {cli}
     {pusha}
 
-    *** change page directory
+    *** disable paging
+    {mov eax, cr0}
+    {and eax, 0x7fffffff}
+    {mov cr0, eax}
+
     {mov ebx, cr3}
-    {mov eax, 0x12000}
-    {mov cr3, eax}
 
     *** convert esp
-    {mov [0x10058], esp}
+    {mov [0xbf38], esp}
     {mov ebx, [ebx]}
     {and ebx, 0xfffff000}
     {mov eax, esp}
@@ -264,9 +275,16 @@ timer_interrupt(/)
     {out 0x20, al}
 
     *** change page directory
-    {mov esp, [0x10058]}
-    {mov ebx, [0x10010]}
+    {mov esp, [0xbf38]}
+    {mov ebx, [0x10008]}
+    {add ebx, 8}
+    {mov ebx, [ebx]}
     {mov cr3, ebx}
+
+    *** enable paging
+    {mov eax, cr0}
+    {or eax, 0x80000000}
+    {mov cr0, eax}
 
     {popa}
     {iret}
@@ -276,11 +294,14 @@ keyboard_interrupt(/)
     {cli}
     {pusha}
 
-    *** change page directory
     {push esp}
+
+    *** disable paging
+    {mov eax, cr0}
+    {and eax, 0x7fffffff}
+    {mov cr0, eax}
+
     {mov ebx, cr3}
-    {mov eax, 0x12000}
-    {mov cr3, eax}
 
     *** convert esp
     {mov ebx, [ebx]}
@@ -304,10 +325,12 @@ keyboard_interrupt(/)
     {mov al, 0xae}
     {out 0x64, al}
 
-    *** change page directory
     {pop esp}
-    {mov ebx, [0x10010]}
-    {mov cr3, ebx}
+
+    *** enable paging
+    {mov eax, cr0}
+    {or eax, 0x80000000}
+    {mov cr0, eax}
 
     {popa}
     {iret}
@@ -334,19 +357,15 @@ handle_scancode(/)
 **
 
 load_procs(/)
-    13000h = K[10208h]
-    14000h = K[10218h]
-    15000h = K[10228h]
-    16000h = K[10238h]
+    12000h = K[10208h]
+    13000h = K[10218h]
+    14000h = K[10228h]
+    15000h = K[10238h]
 
-    1020Ch = k
-    10210h = K[k]
-    1021Ch = k
-    10220h = K[k]
-    1022Ch = k
-    10230h = K[k]
-    1023Ch = k
-    10200h = K[k] = K[10004h] = K[10008h] = s
+    10210h = K[1020Ch]
+    10220h = K[1021Ch]
+    10230h = K[1022Ch]
+    10200h = K[1023Ch] = K[10004h] = K[10008h] = s
 
     0x10001 = K[10200h]
     1 = K[10210h] = K[10220h] = K[10230h]
@@ -357,8 +376,8 @@ load_procs(/)
     [proc_2] = L2.2
     [proc_3] = L2.3
 
-    0x7bfffc = p
-    0x23ffc = r - 0x100 = w
+    0x10fffc = p
+    0x1bffc = r - 0x100 = w
     10204h = q 4 = n _i
     P3  Di#n ?-4
         p - 4 = s
@@ -377,16 +396,17 @@ load_procs(/)
         r - 0xfffc = K[c]
         r - 52 = K[q]
         q + 16 = q
-        p - 0x10000 = p
+        p + 0x10000 = p
         ?=3
     P4  K[10004h] + 4 = p
-    K[p] = K[10058h] + 52 = K[10024h]
+    K[p] = K[0BF38h] + 52 = K[0BF04h]
     @-L2
 **
 
 scheduler(/)
     K[10008h] + 4 = s + 8 = n
-    K[10058h] = K[s]
+    0xbf38 = e
+    K[e] = K[s]
     K[n] = n
 
     Ol
@@ -398,9 +418,9 @@ scheduler(/)
         P12
 
     n = K[10008h] + 4 = n
-    K[n] = K[10058h] + 52 = K[10024h]
+    K[n] = K[0BF38h] + 52 = K[0BF04h]
     n + 4 = n
-    K[n] = K[10010h]
+    K[n]
 **
 
 proc_0(/)
@@ -413,6 +433,7 @@ proc_1(/)
     10@>F1
     P1  
         {pusha}
+        {mov eax, 3}
         {mov edx, [ebp + 220]}
         {mov ecx, [ebp + 1020]}
         {int 0x30} 
@@ -428,6 +449,7 @@ proc_2(/)
     10@>F2
     P1  
         {pusha}
+        {mov eax, 3}
         {mov edx, [ebp + 224]}
         {mov ecx, [ebp + 1024]}
         {int 0x30} 
@@ -443,6 +465,7 @@ proc_3(/)
     10@>F3
     P1  
         {pusha}
+        {mov eax, 3}
         {mov edx, [ebp + 228]}
         {mov ecx, [ebp + 1028]}
         {int 0x30} 

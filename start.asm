@@ -21,7 +21,7 @@ protected:
   mov ds, ax
   mov es, ax
   mov ss, ax
-  mov esp, 0x800000
+  mov esp, 0x400000
 
   mov eax, 0x100000
   push eax
@@ -38,7 +38,7 @@ _gdt:
   dd 0x0000ffff, 0x00df9300 ; Data ring 0
   dd 0x0000ffff, 0x00dffb00 ; Code ring 3
   dd 0x0000ffff, 0x00dff300 ; Data ring 3
-  dd 0x00200067, 0x0010e901 ; TSS
+  dd 0xbf000067, 0x0010e900 ; TSS
 _gdtr:
   dw _gdtr - _gdt - 1
   dd _gdt
